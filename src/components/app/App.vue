@@ -6,7 +6,13 @@
         <SearchPanel :updateTermHandler="updateTermHandler" />
         <AppFilter :updateFilterHandler="updateFilterHandler" :filterName="filter" />
       </div>
-      <MovieList :movies="onFilterHandler(onSearchHandler(movies, term), filter)" @onToggle="onToggleHandler"
+      <Box v-if="!movies.length && !isLoading">
+        <p class="text-danger text-center fs-3">Kinolar yo'q</p>
+      </Box>
+      <Box v-else-if="isLoading">
+        <Loader />
+      </Box>
+      <MovieList v-else :movies="onFilterHandler(onSearchHandler(movies, term), filter)" @onToggle="onToggleHandler"
         @onRemove="onRemoveHandler" />
       <MovieAddForm @createMovie="createMovie" />
     </div>
@@ -34,6 +40,7 @@ export default {
       movies: [],
       term: '',  //qidiruv panelidagi qiymatlar shu o'zgaruvchida qilinadi
       filter: 'all',
+      isLoading: false,
     }
   },
   methods: {
@@ -75,6 +82,7 @@ export default {
     },
     async fetchMovie() { //serverga yuborilgan sorov vaqtida null qaytmasligi uchun ushlab turiladigan malum vaqt uchun async await funksiyasi ishlatiladi
       try {
+        this.isLoading = true
         const { data } = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10') //serverga yuborilgan sorovni doim try catch blogi ichiga olishimiz kerak
         const newArr = data.map(item => ({
           id: item.id,
@@ -87,6 +95,9 @@ export default {
       }
       catch (error) {
         alert(error.message)
+      }
+      finally {
+        this.isLoading = false
       }
     },
   },
