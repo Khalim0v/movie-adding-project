@@ -1,7 +1,7 @@
 <template>
     <Box class="movie-list list-group">
-        <MovieListItem v-for="movie in movies" :movie="movie" :key="movie.id" @onToggle="$emit('onToggle', $event)"
-            @onRemove="$emit('onRemove', movie.id)" />
+        <MovieListItem v-for="movie in movies" :movie="movie" :key="movie.id" @onToggle="$emit('ontoggle', $event)"
+            @onRemove="$emit('onremove', movie.id)" />
     </Box>
 </template>
 

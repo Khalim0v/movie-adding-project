@@ -14,6 +14,16 @@
       </Box>
       <MovieList v-else :movies="onFilterHandler(onSearchHandler(movies, term), filter)" @onToggle="onToggleHandler"
         @onRemove="onRemoveHandler" />
+      <Box>
+        <nav aria-label="pagination">
+          <ul class="pagination justify-content-center">
+            <li v-for="pageNumber in totalPages" :key="pageNumber" :class="{ 'active': pageNumber == page }"
+              @click="changePageHandler(pageNumber)">
+              <span class="page-link">{{ pageNumber }}</span>
+            </li>
+          </ul>
+        </nav>
+      </Box>
       <MovieAddForm @createMovie="createMovie" />
     </div>
   </div>
@@ -41,6 +51,9 @@ export default {
       term: '',  //qidiruv panelidagi qiymatlar shu o'zgaruvchida qilinadi
       filter: 'all',
       isLoading: false,
+      limit: 10,
+      page: 1,
+      totalPages: 0,
     }
   },
   methods: {
@@ -83,14 +96,20 @@ export default {
     async fetchMovie() { //serverga yuborilgan sorov vaqtida null qaytmasligi uchun ushlab turiladigan malum vaqt uchun async await funksiyasi ishlatiladi
       try {
         this.isLoading = true
-        const { data } = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10') //serverga yuborilgan sorovni doim try catch blogi ichiga olishimiz kerak
-        const newArr = data.map(item => ({
+        const response = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+          params: {
+            _limit: this.limit,
+            _page: this.page,
+          }
+        }) //serverga yuborilgan sorovni doim try catch blogi ichiga olishimiz kerak
+        const newArr = response.data.map(item => ({
           id: item.id,
           name: item.title,
           like: false,
           favourite: false,
           viewers: item.id * 10,
         }))
+        this.totalPages = Math.ceil(response.headers['x-total-count'] / this.limit) //umumiy sahifalarni alohida sahifalarga bolish uchun funksiya
         this.movies = newArr
       }
       catch (error) {
@@ -100,10 +119,18 @@ export default {
         this.isLoading = false
       }
     },
+    changePageHandler(page) {
+      this.page = page
+    },
   },
   mounted() {
     this.fetchMovie()
   },
+  watch: { // qandaydir xatolik bolganda quyidagi kod ishga tushadi
+    page() {
+      this.fetchMovie()
+    }
+  }
 }
 </script>
 
